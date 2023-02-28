@@ -26,44 +26,11 @@ class DashboardFragment : BaseFragment() {
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding
-    private var listproduct : ArrayList<Products> = ArrayList()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val client = OkHttpClient()
-        val moshi = Moshi.Builder().build()
-        val usersType: Type = Types.newParameterizedType(
-            MutableList::class.java,
-            Products::class.java
-        )
-        val jsonAdapter: JsonAdapter<kotlin.collections.List<Products>> =
-            moshi.adapter<kotlin.collections.List<Products>>(usersType)
-
-
-        // Tạo request lên server.
-        val request: Request = Request.Builder()
-            .url("http://10.0.2.2:8000/product/")
-            .build()
-
-        Log.e("Request " , request.toString() )
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call?, e: IOException?) {
-                Log.e("Error Network Error", e.toString())
-            }
-
-            @Throws(IOException::class)
-            override fun onResponse(call: Call?, response: Response) {
-
-                // Lấy thông tin JSON trả về. Bạn có thể log lại biến json này để xem nó như thế nào.
-                val json: String = response.body()!!.string()
-                val users: kotlin.collections.List<Products>? = jsonAdapter.fromJson(json)
-                Log.e("asssssssssss1", json.toString() )
-                listproduct = ArrayList<Products>(users)
-            }
-        })
-        listproduct.add(Products("1","Lonh2k5","san pham 1","12","13","10","12","123","12"))
-        listproduct.add(Products("1","Lonh2k5","san pham 2","8","13","10","12","12","12"))
+        getDashboardItemList()
         setHasOptionsMenu(true)
     }
 
@@ -118,10 +85,11 @@ class DashboardFragment : BaseFragment() {
                 binding!!.tvNoDashboardItemsFound.visibility = View.GONE
 
                 // spanCount is set to 2 after every 5th item
-                val layoutManager = GridLayoutManager(activity, 2, GridLayoutManager.VERTICAL, false)
-                layoutManager.spanSizeLookup = object:GridLayoutManager.SpanSizeLookup(){
+                val layoutManager =
+                    GridLayoutManager(activity, 2, GridLayoutManager.VERTICAL, false)
+                layoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
                     override fun getSpanSize(position: Int): Int {
-                        return if((position + 1) % 5 == 0) 2 else 1
+                        return if ((position + 1) % 5 == 0) 2 else 1
                     }
                 }
                 binding!!.rvDashboardItems.layoutManager = layoutManager
@@ -138,15 +106,13 @@ class DashboardFragment : BaseFragment() {
         }
 
 
-
-
     }
 
     private fun getDashboardItemList() {
         //show the progress dialog.
         showProgressDialog(resources.getString(R.string.please_wait))
 
-        FirestoreClass().getDashboardItemsList(listproduct,this@DashboardFragment)
+        FirestoreClass().getDashboardItemsList(this@DashboardFragment)
 
     }
 

@@ -15,6 +15,12 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
+import okhttp3.*
+import java.io.IOException
+import java.lang.reflect.Type
 
 /**
  * A custom class where we will add the operation performed for the FireStore database.
@@ -257,8 +263,44 @@ class FirestoreClass {
     }
 
 
-    fun getDashboardItemsList(productList : ArrayList<Products>, fragment: DashboardFragment) {
-                fragment.successDashboardItemsList(productList)
+    fun getDashboardItemsList(fragment: DashboardFragment) {
+        var listproduct : ArrayList<Products> = ArrayList()
+        val client = OkHttpClient()
+        val moshi = Moshi.Builder().build()
+        val usersType: Type = Types.newParameterizedType(
+            MutableList::class.java,
+            Products::class.java
+        )
+        val jsonAdapter: JsonAdapter<List<Products>> =
+            moshi.adapter<kotlin.collections.List<Products>>(usersType)
+
+
+        // Tạo request lên server.
+        val request: Request = Request.Builder()
+            .url("http://10.0.2.2:8000/product/")
+            .build()
+
+
+        Log.e("Request " , request.toString() )
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call?, e: IOException?) {
+                Log.e("Error Network Error", e.toString())
+            }
+
+            @Throws(IOException::class)
+            override fun onResponse(call: Call?, response: Response) {
+
+                // Lấy thông tin JSON trả về. Bạn có thể log lại biến json này để xem nó như thế nào.
+                val json: String = response.body()!!.string()
+                val users: kotlin.collections.List<Products>? = jsonAdapter.fromJson(json)
+
+                listproduct = ArrayList<Products>(users)
+                Log.e("asssssssssss1", listproduct.toString() )
+                fragment.successDashboardItemsList(listproduct)
+            }
+        })
+
+
 
 
     }
