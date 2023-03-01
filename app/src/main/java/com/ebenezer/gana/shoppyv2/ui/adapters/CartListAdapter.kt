@@ -9,14 +9,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.ebenezer.gana.shoppyv2.R
 import com.ebenezer.gana.shoppyv2.databinding.ListItemCartBinding
 import com.ebenezer.gana.shoppyv2.firestore.FirestoreClass
-import com.ebenezer.gana.shoppyv2.models.CartItem
+import com.ebenezer.gana.shoppyv2.models.Cart
 import com.ebenezer.gana.shoppyv2.ui.activities.CartListActivity
 import com.ebenezer.gana.shoppyv2.utils.Constants
 import com.ebenezer.gana.shoppyv2.utils.GlideLoader
 
 class CartListAdapter(
     private val context: Context,
-    private var cartListItems: ArrayList<CartItem>,
+    private var cartListItems: ArrayList<Cart>,
     private val updateCartItems: Boolean
 ) : RecyclerView.Adapter<CartListAdapter.ViewHolder>() {
 
@@ -43,27 +43,27 @@ class CartListAdapter(
     inner class ViewHolder(val binding: ListItemCartBinding) : View.OnClickListener,
 
         RecyclerView.ViewHolder(binding.root) {
-        private lateinit var cartItem: CartItem
+        private lateinit var cart: Cart
 
-        fun bind(cartItem: CartItem) {
-            this.cartItem = cartItem
+        fun bind(cart: Cart) {
+            this.cart = cart
 
             GlideLoader(context).loadProductPicture(
-                cartItem.image,
+                cart.product.imageURL,
                 binding.ivCartItemImage
             )
 
 
-            binding.tvCartItemTitle.text = cartItem.title
-            binding.tvCartItemPrice.text = "${cartItem.price}$"
-            binding.tvCartQuantity.text = cartItem.cart_quantity
+            binding.tvCartItemTitle.text = cart.product.product_name
+            binding.tvCartItemPrice.text = "${cart.product.price}$"
+            binding.tvCartQuantity.text = cart.product.totalQuantity
 
 
             binding.ibDeleteCartItem.setOnClickListener(this)
             binding.ibAddCartItem.setOnClickListener(this)
             binding.ibRemoveCartItem.setOnClickListener(this)
 
-            if (cartItem.cart_quantity == "0") {
+            if (cart.product.totalQuantity == "0") {
                 binding.ibRemoveCartItem.visibility =
                     View.GONE
                 binding.ibAddCartItem.visibility =
@@ -121,51 +121,32 @@ class CartListAdapter(
             if (v != null) {
                 when (v.id) {
                     R.id.ib_delete_cart_item -> {
-                        when (context) {
-                            is CartListActivity -> {
-                                context.showProgressDialog(context.resources.getString(R.string.please_wait))
-
-                            }
-                        }
-                        FirestoreClass().removedItemFromCart(context, cartItem.id)
+                        FirestoreClass().removedItemFromCart(context, cart.product.productId)
                     }
                     R.id.ib_remove_cart_item -> {
-                        if (cartItem.cart_quantity == "1") {
+                        if (cart.product.totalQuantity == "1") {
                             FirestoreClass()
-                                .removedItemFromCart(context, cartItem.id)
+                                .removedItemFromCart(context, cart.product.productId)
                         } else {
-                            val cartQuantity: Int = cartItem.cart_quantity.toInt()
+                            val cartQuantity: Int = cart.product.totalQuantity.toInt()
 
                             val itemHashMap = HashMap<String, Any>()
 
                             itemHashMap[Constants.CART_QUANTITY] = (cartQuantity - 1).toString()
 
-                            // show the progress dialog.
-
-                            if (context is CartListActivity) {
-                                context.showProgressDialog(context.resources.getString(R.string.please_wait))
-
-                            }
-
                             FirestoreClass()
-                                .updateMyCart(context, cartItem.id, itemHashMap)
+                                .updateMyCart(context, itemHashMap)
                         }
                     }
                     R.id.ib_add_cart_item -> {
-                        val cartQuantity: Int = cartItem.cart_quantity.toInt()
+                        val cartQuantity: Int = cart.product.totalQuantity.toInt()
 
-                        if (cartQuantity < cartItem.stock_quantity.toInt()) {
+                        if (cartQuantity < cart.product.totalQuantity.toInt()) {
                             val itemHashMap = HashMap<String, Any>()
 
                             itemHashMap[Constants.CART_QUANTITY] = (cartQuantity + 1).toString()
 
-                            // show the progress dialog.
-                            if (context is CartListActivity) {
-                                context.showProgressDialog(context.resources.getString(R.string.please_wait))
-
-                            }
-
-                            FirestoreClass().updateMyCart(context, cartItem.id, itemHashMap)
+                            FirestoreClass().updateMyCart(context, itemHashMap)
 
 
                         } else {
@@ -173,7 +154,7 @@ class CartListAdapter(
                                 context.showErrorSnackBar(
                                     context.resources.getString(
                                         R.string.msg_for_available_stock,
-                                        cartItem.stock_quantity
+                                        cart.product.productId
                                     ), true
                                 )
                             }

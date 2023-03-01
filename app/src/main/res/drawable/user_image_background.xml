@@ -4,7 +4,7 @@
 
     <stroke
         android:width="@dimen/user_image_background_stroke"
-        android:color="@color/colorPrimary" />
+        android:color="@color/teal_200" />
 
 
 

@@ -6,43 +6,40 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.ebenezer.gana.shoppyv2.R
 import com.ebenezer.gana.shoppyv2.databinding.ItemDashboardLayoutBinding
-import com.ebenezer.gana.shoppyv2.databinding.ListItemAddressBinding
-import com.ebenezer.gana.shoppyv2.models.Products
+import com.ebenezer.gana.shoppyv2.models.Product
 import com.ebenezer.gana.shoppyv2.ui.activities.ProductDetailsActivity
-import com.ebenezer.gana.shoppyv2.utils.Constants
 import com.ebenezer.gana.shoppyv2.utils.GlideLoader
 
 class DashboardListAdapter(
     private val context: Context,
-    private var allProducts: ArrayList<Products>
+    private var allProducts: ArrayList<Product>
 ) : RecyclerView.Adapter<DashboardListAdapter.ViewHolder>() {
 
     inner class ViewHolder(val binding: ItemDashboardLayoutBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        private lateinit var products: Products
+        private lateinit var product: Product
 
-        fun bind(products: Products) {
-            this.products = products
+        fun bind(product: Product) {
+            this.product = product
 
 
             GlideLoader(context).loadProductPicture(
-                products.imageURL,
+                product.imageURL,
                 binding.ivDashboardItemImage
             )
 
-            binding.tvDashboardItemTitle.text = products.product_name
+            binding.tvDashboardItemTitle.text = product.product_name
             binding.tvDashboardItemPrice.text =
-                "${products.price}$"
+                "${product.price}$"
             binding.tvDashboardItemDescription.text =
-                products.description
+                product.description
 
             itemView.setOnClickListener {
                 val intent = Intent(context, ProductDetailsActivity::class.java)
-                intent.putExtra("Product", products)
+                intent.putExtra("Product", product)
                 context.startActivity(intent)
 
             }

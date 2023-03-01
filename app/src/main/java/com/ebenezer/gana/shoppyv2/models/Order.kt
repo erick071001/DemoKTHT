@@ -6,7 +6,7 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class Order(
     val user_id:String = "",
-    val items:ArrayList<CartItem> = ArrayList(),
+    val items:ArrayList<Cart> = ArrayList(),
     val address: Address = Address(),
     val title:String = "",
     val image:String = "",

@@ -2,15 +2,16 @@ package com.ebenezer.gana.shoppyv2.ui.activities
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.Parcelable
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import com.ebenezer.gana.shoppyv2.R
 import com.ebenezer.gana.shoppyv2.databinding.ActivityProductDetailsBinding
 import com.ebenezer.gana.shoppyv2.firestore.FirestoreClass
-import com.ebenezer.gana.shoppyv2.models.CartItem
-import com.ebenezer.gana.shoppyv2.models.Products
+import com.ebenezer.gana.shoppyv2.models.Cart
+import com.ebenezer.gana.shoppyv2.models.Item
+import com.ebenezer.gana.shoppyv2.models.Product
 import com.ebenezer.gana.shoppyv2.utils.Constants
 import com.ebenezer.gana.shoppyv2.utils.GlideLoader
 
@@ -19,7 +20,7 @@ class ProductDetailsActivity : BaseActivity(), View.OnClickListener {
 
     private var mProductId: String = "1"
 
-    private lateinit var mProductDetails: Products
+    private lateinit var mProductDetails: Product
     private var mProductOwnerId: String = "1"
 
 
@@ -30,9 +31,9 @@ class ProductDetailsActivity : BaseActivity(), View.OnClickListener {
         setContentView(binding.root)
         setupActionBar()
 
-        mProductDetails = intent.getParcelableExtra<Products>("Product")!!
+        mProductDetails = intent.getParcelableExtra<Product>("Product")!!
 
-
+        Log.e("sssss", mProductDetails.toString() )
         // Now we have the product owner id so if the product which is added by owner himself should not see the button Add To Cart.
         binding.btnAddToCart.visibility = View.VISIBLE
 
@@ -42,12 +43,10 @@ class ProductDetailsActivity : BaseActivity(), View.OnClickListener {
     }
 
     private fun getProductDetails() {
-        showProgressDialog(resources.getString(R.string.please_wait))
         FirestoreClass().getProductDetails(this, mProductDetails)
     }
 
     fun productExistInCart() {
-        hideProgressDialog()
         // if the product already exist in the cart, hide the add to cart button
         // and make go to cart button visible
         binding.btnAddToCart.visibility = View.GONE
@@ -56,7 +55,7 @@ class ProductDetailsActivity : BaseActivity(), View.OnClickListener {
     }
 
 
-    fun productDetailsSuccess(product: Products) {
+    fun productDetailsSuccess(product: Product) {
         mProductDetails = product
         //hideProgressDialog()
         GlideLoader(this@ProductDetailsActivity).loadProductPicture(
@@ -70,7 +69,6 @@ class ProductDetailsActivity : BaseActivity(), View.OnClickListener {
         binding.tvProductDetailsShippingCharge.text = "15$"
 
         if (product.totalQuantity.toInt() == 0) {
-            hideProgressDialog()
             binding.btnAddToCart.visibility = View.GONE
             binding.tvProductDetailsAvailableQuantity.setTextColor(
                 ContextCompat.getColor(
@@ -111,26 +109,18 @@ class ProductDetailsActivity : BaseActivity(), View.OnClickListener {
      */
 
     private fun addToCart() {
-        val cartItem = CartItem(
-            "1",
-            mProductOwnerId,
-            mProductDetails.productId,
-            mProductDetails.product_name,
-            mProductDetails.price,
-            mProductDetails.imageURL,
-            Constants.DEFAULT_CART_QUANTITY,
-            mProductDetails.totalQuantity, "1", "15"
+        val cart = Cart(
+            mProductDetails,
+            Item()
         )
 
         //show progress dialog
-        showProgressDialog(resources.getString(R.string.please_wait))
-        FirestoreClass().addCartItems(this, cartItem)
+        FirestoreClass().addCartItems(this, cart)
     }
 
     //  Notify the success result of item added to the to cart.
     fun addToCartSuccess() {
         //hide progress dialog, first show when addToCart() is called
-        hideProgressDialog()
         Toast.makeText(
             this@ProductDetailsActivity,
             resources.getString(R.string.success_message_item_added_to_cart),

@@ -1,7 +1,6 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
-    id 'com.google.gms.google-services'
     id 'kotlin-parcelize'
 }
 
@@ -32,18 +31,14 @@ android {
         jvmTarget = '1.8'
     }
 
-    buildFeatures{
+    buildFeatures {
         viewBinding true
     }
 }
 
 dependencies {
 
-    implementation platform('com.google.firebase:firebase-bom:29.0.3')
-    implementation 'com.google.firebase:firebase-auth-ktx'
-    implementation 'com.google.firebase:firebase-analytics-ktx'
-    implementation platform('com.google.firebase:firebase-bom:29.0.3')
-    implementation 'com.google.firebase:firebase-firestore-ktx'
+
     implementation 'com.github.bumptech.glide:glide:4.12.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     //implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.4.0'
@@ -51,7 +46,7 @@ dependencies {
     implementation 'androidx.navigation:navigation-fragment-ktx:2.4.0'
     implementation 'androidx.navigation:navigation-ui-ktx:2.4.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
-    implementation 'com.google.firebase:firebase-storage-ktx'
+
 
     //noinspection GradleCompatible
     implementation 'com.android.support:recyclerview-v7:24.2.1'

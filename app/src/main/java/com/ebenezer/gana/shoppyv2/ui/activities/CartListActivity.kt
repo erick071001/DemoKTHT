@@ -1,22 +1,21 @@
 package com.ebenezer.gana.shoppyv2.ui.activities
 
-import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.ebenezer.gana.shoppyv2.R
 import com.ebenezer.gana.shoppyv2.databinding.ActivityCartListBinding
 import com.ebenezer.gana.shoppyv2.firestore.FirestoreClass
-import com.ebenezer.gana.shoppyv2.models.CartItem
-import com.ebenezer.gana.shoppyv2.models.Products
+import com.ebenezer.gana.shoppyv2.models.Cart
+import com.ebenezer.gana.shoppyv2.models.Product
 import com.ebenezer.gana.shoppyv2.ui.adapters.CartListAdapter
-import com.ebenezer.gana.shoppyv2.utils.Constants
 
 class CartListActivity : BaseActivity() {
 
-    private lateinit var mProductsList: ArrayList<Products>
-    private lateinit var mCartListItems: ArrayList<CartItem>
+    private lateinit var mProductList: ArrayList<Product>
+    private lateinit var mCartListItems: ArrayList<Cart>
 
 
     lateinit var binding: ActivityCartListBinding
@@ -34,18 +33,16 @@ class CartListActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
-        //getCartItemsList()
-        getProductList()
+        getCartItemsList()
+//        getProductList()
     }
 
     fun itemUpdateSuccess() {
-        hideProgressDialog()
         getCartItemsList()
     }
 
 
     fun itemRemovedSuccess() {
-        hideProgressDialog()
         Toast.makeText(
             this@CartListActivity,
             resources.getString(R.string.msg_item_removed_successfully),
@@ -55,6 +52,7 @@ class CartListActivity : BaseActivity() {
         getCartItemsList()
 
     }
+
 
 
     private fun getCartItemsList() {
@@ -68,37 +66,34 @@ class CartListActivity : BaseActivity() {
 
     private fun getProductList() {
         //show progress dialog, hide when successCartItemList is called
-        showProgressDialog(resources.getString(R.string.please_wait))
         FirestoreClass().getAllProductsList(this@CartListActivity)
     }
 
-    fun successProductsListFromFireStore(productsList: ArrayList<Products>) {
-        hideProgressDialog()
-        mProductsList = productsList
+    fun successProductsListFromFireStore(productList: ArrayList<Product>) {
+        mProductList = productList
         getCartItemsList()
 
 
     }
 
-    fun successCartItemsList(cartList: ArrayList<CartItem>) {
+    fun successCartItemsList(cartList: ArrayList<Cart>) {
         //hide progress dialog, shown when getCartItemsList is called
 
-        hideProgressDialog()
+//        for (product in mProductList) {
+//            for (cartItem in cartList) {
+//                if (product.productId == cartItem.product.productId) {
+//
+//                    cartItem.product.totalQuantity = product.totalQuantity
+//
+//                    if (product.totalQuantity.toInt() == 0) {
+//                        cartItem.product.totalQuantity = product.totalQuantity
+//                    }
+//                }
+//
+//            }
+//        }
 
-        for (product in mProductsList) {
-            for (cartItem in cartList) {
-                if (product.productId == cartItem.product_id) {
-
-                    cartItem.stock_quantity = product.totalQuantity
-
-                    if (product.totalQuantity.toInt() == 0) {
-                        cartItem.cart_quantity = product.totalQuantity
-                    }
-                }
-
-            }
-        }
-
+        Log.e("sssasasa", cartList.toString() )
         mCartListItems = cartList
 
         /*for (items in cartList){
@@ -125,11 +120,11 @@ class CartListActivity : BaseActivity() {
             var shippingCharge = 0
 
             for (item in mCartListItems) {
-                val availableQuantity = item.stock_quantity.toInt()
+                val availableQuantity = item.product.totalQuantity.toInt()
                 if (availableQuantity > 0) {
-                    val price = item.price.toDouble()
-                    val quantity = item.cart_quantity.toInt()
-                    shippingCharge = item.product_shipping_charge.toInt()
+                    val price = item.product.price.toDouble()
+                    val quantity = item.item.quantity.toInt()
+                    shippingCharge = 15
                     subTotal += (price * quantity)
                 }
 
@@ -168,7 +163,8 @@ class CartListActivity : BaseActivity() {
             actionbar.setHomeAsUpIndicator(R.drawable.ic_white_color_back_24dp)
         }
 
-        binding.toolbarCartListActivity.setNavigationOnClickListener { onBackPressed() }
+        binding.toolbarCartListActivity.setNavigationOnClickListener { finish() }
+
 
     }
 }
