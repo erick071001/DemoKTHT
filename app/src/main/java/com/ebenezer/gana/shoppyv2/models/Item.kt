@@ -10,5 +10,5 @@ data class Item(
     val productID: Long = 0,
     val orderID: Long = 0,
     val cartID: Long = 0,
-    val quantity: Long = 0
+    var quantity: Long = 0
 ) : Parcelable

@@ -22,7 +22,7 @@ import java.lang.reflect.Type
  */
 class FirestoreClass {
 
-    // Access a Cloud Firestore instance.
+    var listproduct: ArrayList<Product> = ArrayList()
     fun getCartList(activity: Activity) {
 
         var cartList: ArrayList<Cart> = ArrayList()
@@ -87,12 +87,12 @@ class FirestoreClass {
             .url("http://10.0.2.2:8000/cart/add")
             .post(body)
             .build()
-
+        Thread {
             val call = client.newCall(request)
             val response = call.execute()
             response.code()
             Log.e("ddddddd", response.toString() )
-
+        }.start()
         activity.addToCartSuccess()
     }
 
@@ -107,13 +107,52 @@ class FirestoreClass {
     }
 
     fun getAllProductsList(activity: Activity) {
-
+        when (activity) {
+            is CartListActivity -> {
+                activity.successProductsListFromFireStore(listproduct)
+            }
+        }
     }
-
+    var ordersList: ArrayList<Order> = ArrayList()
     fun getMyOrdersList(fragment: OrdersFragment) {
+        val client = OkHttpClient()
+        val moshi = Moshi.Builder().build()
+        val usersType: Type = Types.newParameterizedType(
+            MutableList::class.java,
+            Order::class.java
+        )
+        val jsonAdapter: JsonAdapter<ArrayList<Order>> =
+            moshi.adapter<kotlin.collections.ArrayList<Order>>(usersType)
+
+
+        // Tạo request lên server.
+        val request: Request = Request.Builder()
+            .url("http://10.0.2.2:8000/order/")
+            .build()
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call?, e: IOException?) {
+                Log.e("Error Network Error", e.toString())
+            }
+
+            override fun onResponse(call: Call?, response: Response) {
+                // Lấy thông tin JSON trả về. Bạn có thể log lại biến json này để xem nó như thế nào.
+                val json: String = response.body()!!.string()
+                val users: kotlin.collections.ArrayList<Order>? = jsonAdapter.fromJson(json)
+                ordersList = ArrayList(users)
+
+                Log.e("asssssssssss1", json.toString())
+                Log.e("asssssssssss2", ordersList.toString())
+                fragment.populateOrdersListInUI(ordersList)
+
+            }
+        })
+
 
 
     }
+
+
+
 
     fun deleteAllOrders(fragment: OrdersFragment, userId: String) {
 
@@ -121,7 +160,7 @@ class FirestoreClass {
     }
 
     fun getDashboardItemsList(fragment: DashboardFragment) {
-        var listproduct: ArrayList<Product> = ArrayList()
+
         val client = OkHttpClient()
         val moshi = Moshi.Builder().build()
         val usersType: Type = Types.newParameterizedType(

@@ -1,6 +1,9 @@
 package com.ebenezer.gana.shoppyv2.ui.fragments
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import android.view.*
 import android.widget.Toast
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -90,36 +93,23 @@ class OrdersFragment : BaseFragment() {
 
     fun populateOrdersListInUI(ordersList: ArrayList<Order>) {
         hideProgressDialog()
-        if (ordersList.size > 0) {
-            binding.rvMyOrderItems.visibility = View.VISIBLE
-            binding.tvNoOrdersFound.visibility = View.GONE
+        Handler(Looper.getMainLooper()).post {
+            if (ordersList.size > 0) {
+                binding.rvMyOrderItems.visibility = View.VISIBLE
+                binding.tvNoOrdersFound.visibility = View.GONE
 
-            binding.rvMyOrderItems.layoutManager = LinearLayoutManager(activity)
-            binding.rvMyOrderItems.setHasFixedSize(true)
-            binding.rvMyOrderItems.adapter =
-                MyOrdersListAdapter(requireActivity(), ordersList, this)
+                binding.rvMyOrderItems.layoutManager = LinearLayoutManager(activity)
+                binding.rvMyOrderItems.setHasFixedSize(true)
+                binding.rvMyOrderItems.adapter =
+                    MyOrdersListAdapter(requireActivity(), ordersList, this)
 
+            } else {
+                binding.rvMyOrderItems.visibility = View.GONE
+                binding.tvNoOrdersFound.visibility = View.VISIBLE
 
-            val deleteSwipeHandler = object : SwipeToDeleteCallback(requireContext()) {
-                override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-
-                    showProgressDialog(resources.getString(R.string.please_wait))
-
-                    FirestoreClass().deleteAllOrders(
-                        this@OrdersFragment,
-                        ordersList[viewHolder.adapterPosition].id
-                    )
-
-                }
             }
-
-            val deleteItemTouchHelper = ItemTouchHelper(deleteSwipeHandler)
-            deleteItemTouchHelper.attachToRecyclerView(binding.rvMyOrderItems)
-        } else {
-            binding.rvMyOrderItems.visibility = View.GONE
-            binding.tvNoOrdersFound.visibility = View.VISIBLE
-
         }
+
 
 
     }

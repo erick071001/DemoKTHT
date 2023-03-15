@@ -1,5 +1,6 @@
 package com.ebenezer.gana.shoppyv2.ui.activities
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -11,11 +12,13 @@ import com.ebenezer.gana.shoppyv2.firestore.FirestoreClass
 import com.ebenezer.gana.shoppyv2.models.Cart
 import com.ebenezer.gana.shoppyv2.models.Product
 import com.ebenezer.gana.shoppyv2.ui.adapters.CartListAdapter
+import com.ebenezer.gana.shoppyv2.utils.Constants
+import java.util.stream.IntStream.range
 
 class CartListActivity : BaseActivity() {
 
-    private lateinit var mProductList: ArrayList<Product>
-    private lateinit var mCartListItems: ArrayList<Cart>
+    private var mProductList: ArrayList<Product> = ArrayList<Product>()
+    private var mCartListItems: ArrayList<Cart> = ArrayList<Cart>()
 
 
     lateinit var binding: ActivityCartListBinding
@@ -26,7 +29,11 @@ class CartListActivity : BaseActivity() {
         val view = binding.root
         setContentView(view)
         setupActionBar()
+        binding.btnCheckout.setOnClickListener {
+            onBackPressed()
 
+
+        }
 
     }
 
@@ -34,7 +41,7 @@ class CartListActivity : BaseActivity() {
     override fun onResume() {
         super.onResume()
         getCartItemsList()
-//        getProductList()
+        getProductList()
     }
 
     fun itemUpdateSuccess() {
@@ -61,6 +68,7 @@ class CartListActivity : BaseActivity() {
         FirestoreClass().getCartList(this@CartListActivity)
 
 
+
     }
 
 
@@ -71,7 +79,7 @@ class CartListActivity : BaseActivity() {
 
     fun successProductsListFromFireStore(productList: ArrayList<Product>) {
         mProductList = productList
-        getCartItemsList()
+
 
 
     }
@@ -79,26 +87,33 @@ class CartListActivity : BaseActivity() {
     fun successCartItemsList(cartList: ArrayList<Cart>) {
         //hide progress dialog, shown when getCartItemsList is called
 
-//        for (product in mProductList) {
-//            for (cartItem in cartList) {
-//                if (product.productId == cartItem.product.productId) {
-//
-//                    cartItem.product.totalQuantity = product.totalQuantity
-//
-//                    if (product.totalQuantity.toInt() == 0) {
-//                        cartItem.product.totalQuantity = product.totalQuantity
-//                    }
-//                }
-//
-//            }
-//        }
+
+
+        for (product in mProductList) {
+            for (cartItem in cartList) {
+                if (product.productId == cartItem.item.productID.toString()) {
+
+                    cartItem.item.quantity= product.totalQuantity.toLong()
+                    if (product.totalQuantity.toInt() == 0) {
+                        cartItem.item.quantity = product.totalQuantity.toLong()
+                    }
+                }
+
+            }
+        }
 
         Log.e("sssasasa", cartList.toString() )
         mCartListItems = cartList
 
-        /*for (items in cartList){
-            Log.i("Cart Item Title", items.title)
-        }*/
+        for (i in 0..mCartListItems.size-1) {
+            for (j in mCartListItems.size-1 downTo i+1) {
+                if (mCartListItems[i].item.productID == mCartListItems[j].item.productID ){
+                    mCartListItems[i].item.quantity+=1
+                    mCartListItems.removeAt(j)
+                }
+            }
+        }
+        Log.e("TAG", mCartListItems.toString() )
 
         if (mCartListItems.size > 0) {
             binding.rvCartItemsList.visibility = View.VISIBLE
@@ -122,10 +137,10 @@ class CartListActivity : BaseActivity() {
             for (item in mCartListItems) {
                 val availableQuantity = item.product.totalQuantity.toInt()
                 if (availableQuantity > 0) {
-                    val price = item.product.price.toDouble()
+                    val price = (item.product.price.toDouble() * item.item.quantity).toDouble()
                     val quantity = item.item.quantity.toInt()
                     shippingCharge = 15
-                    subTotal += (price * quantity)
+                    subTotal += (price)
                 }
 
             }
