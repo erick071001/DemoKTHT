@@ -71,8 +71,33 @@ class FirestoreClass {
     fun removedItemFromCart(context: Context, cart_id: String) {
 
     }
+    var s : String ="["
+    fun createNewOrder(cart : ArrayList<Cart>,tt : Double) {
+        val client = OkHttpClient()
+        Log.e("createNewOrder: ", cart.toString() )
 
-    fun updateMyCart(context: Context, itemHashMap: HashMap<String, Any>) {
+        for (i in cart) {
+            s+=i.product.productId
+            s+=","
+        }
+        s=s.dropLast(1)
+        s+="]"
+
+        val json = "{\"product_ids\": "+s+",\"user_id\": \"1\",\"payment_method\": \"momo\",\"total_price\": ${tt}}"
+        Log.e("createNewOrder: ", json )
+        val body = RequestBody.create(
+            MediaType.parse("application/json"), json
+        )
+        val request: Request = Request.Builder()
+            .url("http://10.0.2.2:8000/order/create")
+            .post(body)
+            .build()
+        Thread {
+            val call = client.newCall(request)
+            val response = call.execute()
+            response.code()
+            Log.e("order", response.toString() )
+        }.start()
 
     }
 

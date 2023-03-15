@@ -2,6 +2,8 @@ package com.ebenezer.gana.shoppyv2.ui.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -19,7 +21,7 @@ class CartListActivity : BaseActivity() {
 
     private var mProductList: ArrayList<Product> = ArrayList<Product>()
     private var mCartListItems: ArrayList<Cart> = ArrayList<Cart>()
-
+    private var cartListItems: ArrayList<Cart> = ArrayList<Cart>()
 
     lateinit var binding: ActivityCartListBinding
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,8 +32,8 @@ class CartListActivity : BaseActivity() {
         setContentView(view)
         setupActionBar()
         binding.btnCheckout.setOnClickListener {
+            FirestoreClass().createNewOrder(cartListItems,total)
             onBackPressed()
-
 
         }
 
@@ -83,7 +85,7 @@ class CartListActivity : BaseActivity() {
 
 
     }
-
+    var total : Double = 0.0
     fun successCartItemsList(cartList: ArrayList<Cart>) {
         //hide progress dialog, shown when getCartItemsList is called
 
@@ -104,7 +106,7 @@ class CartListActivity : BaseActivity() {
 
         Log.e("sssasasa", cartList.toString() )
         mCartListItems = cartList
-
+        cartListItems = ArrayList(cartList)
         for (i in 0..mCartListItems.size-1) {
             for (j in mCartListItems.size-1 downTo i+1) {
                 if (mCartListItems[i].item.productID == mCartListItems[j].item.productID ){
@@ -115,57 +117,61 @@ class CartListActivity : BaseActivity() {
         }
         Log.e("TAG", mCartListItems.toString() )
 
-        if (mCartListItems.size > 0) {
-            binding.rvCartItemsList.visibility = View.VISIBLE
-            binding.tvNoCartItemFound.visibility = View.GONE
-            binding.llCheckout.visibility = View.VISIBLE
+        Handler(Looper.getMainLooper()).post {
+            if (mCartListItems.size > 0) {
+                binding.rvCartItemsList.visibility = View.VISIBLE
+                binding.tvNoCartItemFound.visibility = View.GONE
+                binding.llCheckout.visibility = View.VISIBLE
 
-            with(binding.rvCartItemsList) {
-                layoutManager = LinearLayoutManager(this@CartListActivity)
-                setHasFixedSize(true)
-                val cartListAdapter = CartListAdapter(
-                    this@CartListActivity,
-                    cartListItems = mCartListItems, true
-                )
-                adapter = cartListAdapter
-            }
-
-
-            var subTotal: Double = 0.0
-            var shippingCharge = 0
-
-            for (item in mCartListItems) {
-                val availableQuantity = item.product.totalQuantity.toInt()
-                if (availableQuantity > 0) {
-                    val price = (item.product.price.toDouble() * item.item.quantity).toDouble()
-                    val quantity = item.item.quantity.toInt()
-                    shippingCharge = 15
-                    subTotal += (price)
+                with(binding.rvCartItemsList) {
+                    layoutManager = LinearLayoutManager(this@CartListActivity)
+                    setHasFixedSize(true)
+                    val cartListAdapter = CartListAdapter(
+                        this@CartListActivity,
+                        cartListItems = mCartListItems, true
+                    )
+                    adapter = cartListAdapter
                 }
 
-            }
 
-            binding.tvSubTotal.text = "$subTotal$"
-            binding.tvShippingCharge.text = "$shippingCharge$"
+                var subTotal: Double = 0.0
+                var shippingCharge = 0
 
-            if (subTotal > 0) {
-                binding.llCheckout.visibility = View.VISIBLE
-                val total = subTotal + shippingCharge
+                for (item in mCartListItems) {
+                    val availableQuantity = item.product.totalQuantity.toInt()
+                    if (availableQuantity > 0) {
+                        val price = (item.product.price.toDouble() * item.item.quantity).toDouble()
+                        val quantity = item.item.quantity.toInt()
+                        shippingCharge = 15
+                        subTotal += (price)
+                    }
 
-                binding.tvTotalAmount.text = "$total$"
+                }
+
+                binding.tvSubTotal.text = "$subTotal$"
+                binding.tvShippingCharge.text = "$shippingCharge$"
+
+                if (subTotal > 0) {
+                    binding.llCheckout.visibility = View.VISIBLE
+                    total = subTotal + shippingCharge
+
+                    binding.tvTotalAmount.text = "$total$"
+                } else {
+
+                    binding.llCheckout.visibility = View.GONE
+
+
+                }
+
             } else {
-
+                binding.rvCartItemsList.visibility = View.GONE
+                binding.tvNoCartItemFound.visibility = View.VISIBLE
                 binding.llCheckout.visibility = View.GONE
 
-
             }
-
-        } else {
-            binding.rvCartItemsList.visibility = View.GONE
-            binding.tvNoCartItemFound.visibility = View.VISIBLE
-            binding.llCheckout.visibility = View.GONE
-
         }
+
+
 
 
     }

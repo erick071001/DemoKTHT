@@ -7,7 +7,7 @@ import kotlinx.parcelize.Parcelize
 data class Order(
     var id:Long = 0L,
     val order_status:String = "",
-    val total_price: Float,
+    val total_price: Double,
     val user_id:String = "",
     val payment_method:String = "",
     val order_date:String = "",
